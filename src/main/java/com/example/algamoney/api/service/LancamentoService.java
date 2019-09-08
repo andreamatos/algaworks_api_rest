@@ -1,6 +1,8 @@
 package com.example.algamoney.api.service;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.example.algamoney.api.model.Lancamento;
@@ -27,4 +29,17 @@ public class LancamentoService {
 		return lancamentoRepository.save(lancamento);
 	}
 	
+	public Lancamento atualizarLancamento(Long codigo, Lancamento lancamento) {
+		Lancamento lancamentoSalvo;
+		try {
+			lancamentoSalvo = lancamentoRepository.findOne(codigo);
+		}catch(Exception e) {
+			throw new EmptyResultDataAccessException(1);		
+		}
+		
+		BeanUtils.copyProperties(lancamento, lancamentoSalvo, "codigo");
+		lancamentoRepository.save(lancamentoSalvo);
+		
+		return lancamentoSalvo;
+	}
 }

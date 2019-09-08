@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -59,8 +60,8 @@ public class LancamentoResource {
 	}
 	//pesquisa por filtro 
 	//o parametro ? 
-	//exemplo postman = localhost:8080/lancamento?dataVencimentoDe=2017-06-10&dataVencimentoAte=2017-06-11
-	//exemplo postman = localhost:8080/lancamento?descricao=salario
+	//exemplo postman = localhost:8080/lancamentos?dataVencimentoDe=2017-06-10&dataVencimentoAte=2017-06-11
+	//exemplo postman = localhost:8080/lancamentos?descricao=salario
 	//size = quantos elementos por pagina
 	//page = pagina que queremos mostrar
 	//pageable = localhost:8080/lancamentos?size=3&page=2
@@ -84,6 +85,14 @@ public class LancamentoResource {
 	public void deletarPeloCodigo(@PathVariable Long codigo) {
 		 lancamentoRepository.delete(codigo);
 	}
+
+	//atualização parcial, recebe codigo e se esta ativo
+	@PutMapping("/{codigo}/ativo")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@PreAuthorize("hasAuthority('ROLE_CADASTRAR_PESSOA') and #oauth2.hasScope('read')")
+	public void atualizarLancaento(@PathVariable Long codigo, @RequestBody Lancamento lancamento){
+		lancamentoService.atualizarLancamento(codigo, lancamento);
+	}
 	
 	@PostMapping
 	@PreAuthorize("hasAuthority('ROLE_CADASTRAR_LANCAMENTO') and #oauth2.hasScope('read')")
@@ -92,7 +101,7 @@ public class LancamentoResource {
 		publisher.publishEvent(new RecursoCriadoEvent(this, response, lancamentoSalvo.getCodigo()));
 		return ResponseEntity.status(HttpStatus.CREATED).body(lancamentoSalvo);
 	}
-	
+
 	@ExceptionHandler({PessoaInexistenteOuInativaException.class})
 	public ResponseEntity<Object> handlePessoaInexistenteOuInativaException(PessoaInexistenteOuInativaException ex){
 		String mensagemUsuario = messageSource.getMessage("pessoa.inexistente-ou-inativa", null, LocaleContextHolder.getLocale());
